@@ -1,0 +1,10 @@
+<clickhouse>
+    <zookeeper>
+        <node>
+            <host>zookeeper</host>
+            <port>2181</port>
+        </node>
+        <session_timeout_ms>50000</session_timeout_ms>
+        <operation_timeout_ms>30000</operation_timeout_ms>
+    </zookeeper>
+</clickhouse>

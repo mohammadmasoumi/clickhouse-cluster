@@ -1,0 +1,151 @@
+version: '3.6'
+configs:
+  zookeeper-config:
+    file: zookeeper.xml
+    name: zookeeper-config-1
+  click-config:
+    file: config.xml
+    name: click-config-1
+  users-config:
+    file: users.xml
+    name: users-config-1
+  macros-1:
+    file: ./macros/macros-1.xml
+    name: macros-1-1
+  macros-2:
+    file: ./macros/macros-2.xml
+    name: macros-2-1
+  macros-3:
+    file: ./macros/macros-3.xml
+    name: macros-3-1
+
+services:
+    zookeeper:
+        image: docker.arvancloud.ir/bitnami/zookeeper
+        environment:
+            - ALLOW_ANONYMOUS_LOGIN=yes
+
+    clickhouse-1:
+        image: docker.arvancloud.ir/bitnami/clickhouse
+        hostname: clickhouse-1
+        env_file: .env
+        configs:
+            - source: click-config
+              target: /etc/clickhouse-server/config.xml
+            - source: zookeeper-config
+              target: /etc/clickhouse-server/config.d/zookeeper.xml
+            - source: macros-1
+              target: /etc/clickhouse-server/config.d/macros.xml
+            - source: users-config
+              target: /etc/clickhouse-server/users.d/users.xml
+        ulimits:
+            nofile:
+                soft: 262144
+                hard: 262144
+        environment:
+          - CLICKHOUSE_HOSTNAME=clickhouse-1
+        depends_on:
+            - zookeeper
+        volumes:
+          - ch1-volume:/var/lib/clickhouse/
+        deploy:
+            placement:
+                constraints:
+                    - "node.labels.click==1"
+
+    clickhouse-2:
+        image: docker.arvancloud.ir/bitnami/clickhouse
+        hostname: clickhouse-2
+        env_file: .env
+        configs:
+            - source: click-config
+              target: /etc/clickhouse-server/config.xml
+            - source: zookeeper-config
+              target: /etc/clickhouse-server/config.d/zookeeper.xml
+            - source: macros-2
+              target: /etc/clickhouse-server/config.d/macros.xml
+            - source: users-config
+              target: /etc/clickhouse-server/users.d/users.xml
+        ulimits:
+            nofile:
+                soft: 262144
+                hard: 262144
+        environment:
+          - CLICKHOUSE_HOSTNAME=clickhouse-2
+        depends_on:
+            - zookeeper
+        deploy:
+            placement:
+                constraints:
+                    - "node.labels.click==2"
+
+    clickhouse-3:
+        image: docker.arvancloud.ir/bitnami/clickhouse
+        hostname: clickhouse-3
+        env_file: .env
+        configs:
+            - source: click-config
+              target: /etc/clickhouse-server/config.xml
+            - source: zookeeper-config
+              target: /etc/clickhouse-server/config.d/zookeeper.xml
+            - source: macros-3
+              target: /etc/clickhouse-server/config.d/macros.xml
+            - source: users-config
+              target: /etc/clickhouse-server/users.d/users.xml
+        ulimits:
+            nofile:
+                soft: 262144
+                hard: 262144
+        environment:
+          - CLICKHOUSE_HOSTNAME=clickhouse-3
+        depends_on:
+            - zookeeper
+        deploy:
+            placement:
+                constraints:
+                    - "node.labels.click==3"
+
+    kafka-zookeeper:
+        image: docker.arvancloud.ir/confluentinc/cp-zookeeper:latest
+        hostname: keeper-2
+        environment:
+            ZOOKEEPER_CLIENT_PORT: 2182
+            ZOOKEEPER_TICK_TIME: 2000
+        deploy:
+            placement:
+                constraints:
+                    - "node.labels.click==2"
+    kafka:
+        image: docker.arvancloud.ir/confluentinc/cp-kafka:latest
+        depends_on:
+            - kafka-zookeeper
+        ports:
+            - 9092:9092
+        environment:
+            KAFKA_BROKER_ID: 1
+            KAFKA_ZOOKEEPER_CONNECT: kafka-zookeeper:2182
+            KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+            KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+            KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+            KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+        deploy:
+            placement:
+                constraints:
+                    - "node.labels.click==2"
+    kafka_ui:
+      image: docker.arvancloud.ir/provectuslabs/kafka-ui:latest
+      depends_on:
+        - kafka-zookeeper
+      ports:
+        - "40101:8080"
+      environment:
+        - KAFKA_CLUSTERS_0_NAME=local
+        - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092
+        - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2182
+      deploy:
+        placement:
+          constraints:
+            - "node.labels.click==2"
+
+volumes:
+  ch1-volume:

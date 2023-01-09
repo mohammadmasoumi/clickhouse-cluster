@@ -1,0 +1,19 @@
+<!-- https://github.com/ClickHouse/ClickHouse/blob/master/programs/server/users.xml -->
+<clickhouse>
+    <profiles>
+        <admin>
+            <readonly>0</readonly>
+        </admin>
+    </profiles>
+
+    <users>
+        <admin>
+            <password>hPcorXUa3BTtic</password>
+            <profile>admin</profile>
+             <networks>
+                <ip>::/0</ip>
+            </networks>
+            <quota>default</quota>
+        </admin>
+    </users>
+</clickhouse>

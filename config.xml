@@ -1,0 +1,83 @@
+<!-- https://clickhouse.com/docs/en/operations/server-configuration-parameters/settings -->
+<clickhouse>
+    <logger>
+        <level>debug</level>
+        <console>true</console>
+        <size>1000M</size>
+        <log remove="remove"/>
+        <errorlog remove="remove"/>
+    </logger>
+
+    <query_log>
+        <database>system</database>
+        <table>query_log</table>
+    </query_log>
+
+    <!-- The port for connecting to the server over HTTP -->
+    <http_port>8123</http_port>
+
+    <!-- Port for communicating with clients over the TCP protocol -->
+    <tcp_port>9000</tcp_port>
+
+    <!-- The hostname that can be used by other servers to access this server.
+    If omitted, it is defined in the same way as the hostname-f command.
+    Useful for breaking away from a specific network interface. -->
+    <!-- <interserver_http_host>clickhouse-2</interserver_http_host> -->
+
+    <!-- Port for exchanging data between ClickHouse servers. -->
+    <interserver_http_port>9010</interserver_http_port>
+
+    <!-- Restriction on hosts that requests can come from. 
+    If you want the server to answer all of them, specify ::. -->
+    <listen_host>::</listen_host>
+
+    <!-- The maximum number of inbound connections. -->
+    <max_connections>4096</max_connections>
+
+    <!-- The number of seconds that ClickHouse waits for incoming requests 
+    before closing the connection. Defaults to 10 seconds. -->
+    <keep_alive_timeout>10</keep_alive_timeout>
+
+    <max_concurrent_queries>100</max_concurrent_queries>
+
+    <!-- The path to the directory containing data. -->
+    <path>/var/lib/clickhouse/</path>
+
+    <!-- Path to temporary data for processing large queries. -->
+    <tmp_path>/var/lib/clickhouse/tmp/</tmp_path>
+
+    <!-- The directory with user files. Used in the table function file(). -->
+    <user_files_path>/var/lib/clickhouse/user_files/</user_files_path>
+
+    <uncompressed_cache_size>8589934592</uncompressed_cache_size>
+    <mark_cache_size>5368709120</mark_cache_size>
+
+    <users_config>users.xml</users_config>
+    <default_profile>default</default_profile>
+    <default_database>default</default_database>
+    <timezone>Asia/Tehran</timezone>
+
+    <remote_servers>
+        <click_cluster>
+            <shard>
+                <internal_replication>true</internal_replication>
+                <replica>
+                    <host>clickhouse-1</host>
+                    <port>9000</port>
+                </replica>
+                <replica>
+                    <host>clickhouse-2</host>
+                    <port>9000</port>
+                </replica>
+                <replica>
+                    <host>clickhouse-3</host>
+                    <port>9000</port>
+                </replica>
+            </shard>
+        </click_cluster>
+    </remote_servers>
+
+    <distributed_ddl>
+        <path>/clickhouse/task_queue/ddl</path>
+    </distributed_ddl>
+</clickhouse>
